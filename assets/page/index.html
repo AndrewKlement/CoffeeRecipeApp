@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <link href="/styles/index.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+        <title>Recipe</title>
+    </head>
+    <body>
+        <div class="bar">
+            <h1 class="title">Recipe Graph</h1>
+        </div>
+
+        <span class="material-symbols-outlined" id="menu" unselectable="on" onselectstart="return false;" onmousedown="return false;">menu</span>
+        
+        <div class="menu_inside" id="menu_inside">
+            <form>
+                <div class="input-group flex-nowrap" id="pourlength">
+                    <span class="input-group-text" id="addon-wrapping">Pour Length</span>
+                    <input id="pourlength_input" type="number" class="form-control" placeholder="second" aria-label="second" aria-describedby="addon-wrapping">
+                </div>
+                
+                <button type="button" class="btn btn-light" id="submit">Apply to Graph</button>
+            </form>
+        </div>
+
+        <div class="infoWrapper">
+            <div id="chartWrapper">
+                <canvas id="myChart"></canvas>
+            </div>
+
+            <button type="button" class="btn btn-primary start_button" id="start_button">Start</button>
+        
+            <div class="timerDisplay">
+                00 : 00 : 00
+            </div>
+        </div>        
+
+        <script>        
+
+            document.getElementById("submit").addEventListener("click", set_pourlength)
+
+            let recipefdata = [];
+            var livefdata = []
+
+            async function chart(){
+                await getRecipe()
+                myChart.update()
+            }
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+
+            const myChart = new Chart(ctx, {
+                plugins: [ChartDataLabels],
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Recipe',
+                            data: recipefdata,
+                            fill: true,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor : 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1,
+                            datalabels: {
+                                formatter: function(value) {
+                                    return String(value.x) + ', ' + String(value.y);
+                                },
+                                display: 'auto',
+                                color: 'rgb(75, 192, 192)',
+                                anchor: 'end',
+                                align: 'top',
+                                font: {
+                                    weight: 'bold',
+                                    size: '15',
+                                }
+                            }
+                        },
+                        {
+                            label: 'Live Data',
+                            data: livefdata,
+                            fill: true,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor : 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.1,
+                            pointRadius: 0,
+                            datalabels: {
+                                formatter: function(value) {
+                                    return String(value.x) + ', ' + String(value.y);
+                                },
+                                display: 'auto',
+                                color: 'rgb(255, 99, 132)',
+                                anchor: 'end',
+                                align: 'top',
+                                font: {
+                                    weight: 'bold',
+                                    size: '15',
+                                }
+                            },
+                        },
+                    ],
+                },
+                options: {
+                    showLine: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Second'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Weight'
+                            }
+                        }
+                    }     
+                },
+            });
+
+            chart()
+
+            async function getRecipe(pourLength = 5){
+                const response = await fetch('./recipe');
+                if(!response.ok)
+                    throw new Error(response.statusText);
+                const data = await response.json(); 
+                const recipe_data = data.data.map(function (n){return {x: parseInt(n[0]), y: parseInt(n[1])}})
+                console.log(data)
+                console.log(myChart.data.datasets[0])
+                const result =  recipe_data.map((x) => x);
+                if(recipe_data.length > 1){
+                    let counter = 0;
+                    for (let index = 0; index < recipe_data.length-pourLength; index++) {
+                        result.splice(index+1+counter, 0,{x: recipe_data[index].x + 5, y: recipe_data[index+1].y});
+                        counter ++;
+                    }
+                }
+                recipefdata = result
+                myChart.data.datasets[0].data = recipefdata
+            }
+
+            function set_pourlength(){
+                let value = parseFloat(document.getElementById("pourlength_input").value)
+                console.log(value)
+                getRecipe(value)
+            }
+        </script>
+
+        <script type="text/javascript">
+            document.getElementById("menu").addEventListener("click", handle_open_close)
+            function handle_open_close(){
+                document.getElementById("menu_inside").classList.toggle("m_active")
+            }
+        </script>    
+
+        <script type="text/javascript">
+            let IntervalTimer;
+            let DataTimer;
+            let [milliseconds,seconds,minutes,hours] = [0,0,0,0];
+            let secondsPassed = 0
+            let milli = 0
+            let timerRef = document.querySelector('.timerDisplay');
+
+            let start_stopButton = document.getElementById("start_button");
+
+            start_stopButton.addEventListener("click", start_Timer);
+
+
+            function start_Timer(){
+                if(IntervalTimer == null){
+                    IntervalTimer = setInterval(updateStopwatch, 10);
+                    DataTimer = setInterval(updateData, 10);
+                    start_stopButton.innerHTML = "Stop";
+                }
+                else{
+                    clearInterval(IntervalTimer)
+                    IntervalTimer = null;
+                    clearInterval(DataTimer)
+                    DataTimer = null;
+                    start_stopButton.innerHTML = "Start";
+                }
+            }
+
+            function updateData(){
+                milli += 10;
+                if(milli == 1000){
+                    milli = 0;
+                    secondsPassed ++
+                    setLiveValue()
+                }
+            }
+
+            function updateStopwatch(){
+                milliseconds += 10;
+                if(milliseconds == 1000){
+                    milliseconds = 0
+                    seconds++;
+                    if(seconds == 60){
+                        seconds = 0;
+                        minutes++;
+                        if(minutes == 60){
+                            minutes = 0;
+                            hours++;
+                        }
+                    }
+                }
+                setStopwatchValue()
+            }
+
+            function setStopwatchValue(){
+                var h = hours < 10 ? "0" + hours : hours;
+                var m = minutes < 10 ? "0" + minutes : minutes;
+                var s = seconds < 10 ? "0" + seconds : seconds;
+                timerRef.innerHTML = `${h} : ${m} : ${s}`;
+            }
+
+            async function setLiveValue(){
+                const response = await fetch('./scale_value');
+                if(!response.ok)
+                    throw new Error(response.statusText);
+                const data = await response.json(); 
+                const scale_data = data.data
+                livefdata.push({x: secondsPassed, y: parseInt(scale_data)})
+                myChart.data.datasets[1].data = livefdata
+                myChart.update()
+            }
+        </script>
+    
+    </body>
+</html>

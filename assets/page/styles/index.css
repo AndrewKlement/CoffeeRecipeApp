@@ -1,0 +1,102 @@
+.body {
+    background: #FCFCFC;
+  }
+
+.bar{
+  position: absolute;
+  width: 165px;
+  height: 36px;
+  left: 43px;
+  top: 33px;
+}
+
+.title{
+    font-weight: 700;
+    font-size: 25px;
+    line-height: 36px;
+    color: #000000;
+}
+
+.material-symbols-outlined {
+  position: absolute;
+  cursor: default;
+  width: 30px;
+  height: 30px;
+  left: 90%;
+  top: 45px;
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 48
+}
+
+#submit {
+  position: absolute;
+  top: 80px;
+  left: 25px;
+}
+
+#pourlength{
+  position: absolute;
+  width: 300px;
+  top: 15px;
+  left: 25px;
+}
+
+.preinfusion{
+  position: absolute;
+  top: 10px;
+  left: 25px;
+  width: 300px;
+  height: 50px;
+}
+
+.infoWrapper{
+  position: relative;
+  top: 117px;
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+.menu_inside {
+  z-index : 1000;
+  visibility: hidden;
+  position: absolute;
+  opacity: 0;
+  width: 369px;
+  height: 150px;
+  top: 117px;
+  left: calc(100% - 369px);
+  background: #e8e8e8d0;
+  transition: visibility 300ms linear 300ms, opacity 300ms;
+}
+
+.m_active {
+  visibility: visible;
+  opacity: 1;
+}
+
+#chartWrapper{
+  display: inline-block;
+  width: 90%;
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+.start_button{
+  position: absolute;
+  font-size: 17px;
+  width: 100px;
+  margin-top: 10px;
+  top: 100%;
+  left: 75px;
+}
+
+.timerDisplay{
+  position: absolute;
+  font-size: 23px;
+  margin-top: 10px;
+  top: 100%;
+  left: 210px;
+}
